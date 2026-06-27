@@ -371,10 +371,10 @@ def render(text):
 </article>
 </div>
 <div id="controls">
-  <button id="ctrl-search" title="Search (⌘F / Ctrl+F)">⌕</button>
-  <button id="ctrl-zoom-out" title="Zoom out (⌘- / Ctrl+-)">−</button>
-  <button id="ctrl-zoom-reset" title="Reset zoom (⌘0 / Ctrl+0)">A</button>
-  <button id="ctrl-zoom-in" title="Zoom in (⌘= / Ctrl+=)">+</button>
+  <button id="ctrl-search" title="Search (Ctrl+F)">⌕</button>
+  <button id="ctrl-zoom-out" title="Zoom out (Ctrl+-)">−</button>
+  <button id="ctrl-zoom-reset" title="Reset zoom (Ctrl+0)">A</button>
+  <button id="ctrl-zoom-in" title="Zoom in (Ctrl+=)">+</button>
   <button id="ctrl-theme" title="Theme: auto (click to cycle)">◐</button>
 </div>
 <div id="search-bar">
