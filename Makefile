@@ -23,7 +23,8 @@ test:
 assets:
 	bash scripts/download-assets.sh
 
-# Build a native app bundle / binary via PyInstaller
+# Build a PyInstaller binary — Linux and Windows only.
+# macOS uses a shell-script .app via 'make install' (no PyInstaller needed).
 build:
 	$(CONDA_RUN) pip install pyinstaller -q
 	$(CONDA_RUN) pyinstaller \
@@ -34,10 +35,7 @@ build:
 		-y \
 		app.py
 	@echo ""
-	@echo "Built:"
-	@echo "  macOS  → dist/Chomnu.app"
-	@echo "  Linux  → dist/Chomnu"
-	@echo "  Windows→ dist/Chomnu.exe"
+	@echo "Built: dist/Chomnu (Linux) or dist/Chomnu.exe (Windows)"
 	@echo "Run 'make install' to install the chomnu CLI command."
 
 # Install: on macOS create a lightweight shell-script .app (no PyInstaller needed —
@@ -49,24 +47,7 @@ ifeq ($(OS), Darwin)
 	@echo "Creating Chomnu.app in /Applications..."
 	@rm -rf /Applications/Chomnu.app
 	@mkdir -p /Applications/Chomnu.app/Contents/MacOS
-	@printf '<?xml version="1.0" encoding="UTF-8"?>\n\
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n\
-<plist version="1.0"><dict>\n\
-  <key>CFBundleExecutable</key><string>Chomnu</string>\n\
-  <key>CFBundleIdentifier</key><string>com.chomnu.app</string>\n\
-  <key>CFBundleName</key><string>Chomnu</string>\n\
-  <key>CFBundleDisplayName</key><string>Chomnu</string>\n\
-  <key>CFBundleVersion</key><string>1.0</string>\n\
-  <key>CFBundleShortVersionString</key><string>1.0</string>\n\
-  <key>CFBundlePackageType</key><string>APPL</string>\n\
-  <key>NSHighResolutionCapable</key><true/>\n\
-  <key>CFBundleDocumentTypes</key><array><dict>\n\
-    <key>CFBundleTypeExtensions</key><array><string>md</string><string>markdown</string></array>\n\
-    <key>CFBundleTypeName</key><string>Markdown Document</string>\n\
-    <key>CFBundleTypeRole</key><string>Viewer</string>\n\
-    <key>LSHandlerRank</key><string>Alternate</string>\n\
-  </dict></array>\n\
-</dict></plist>\n' > /Applications/Chomnu.app/Contents/Info.plist
+	@cp macos/Info.plist /Applications/Chomnu.app/Contents/Info.plist
 	@printf '#!/bin/bash\nexec $(CONDA_PYTHON) $(REPO_DIR)/app.py "$$@"\n' \
 		> /Applications/Chomnu.app/Contents/MacOS/Chomnu
 	@chmod +x /Applications/Chomnu.app/Contents/MacOS/Chomnu

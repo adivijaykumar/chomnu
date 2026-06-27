@@ -27,38 +27,47 @@ conda run -n chomnu python app.py path/to/file.md
 ## Running the tests
 
 ```bash
+# Install Playwright (first time only)
+make install-dev
+
+# Run all 80 tests
 make test
-# or:
-conda run -n chomnu python -m pytest tests/ -v
 ```
 
-The test suite covers the Markdown→HTML pipeline (`renderer.py`). It doesn't require a display — all tests run headlessly against the renderer logic.
+The suite has two parts:
 
-**The two asset tests** (`test_mathjax_bundle_present`, `test_mermaid_bundle_present`) will fail if you haven't run `bash scripts/download-assets.sh` yet. CI downloads them automatically.
+- **`tests/test_renderer.py`** (55 tests) — covers the Markdown→HTML pipeline. Runs headlessly, no display needed.
+- **`tests/test_ui.py`** (25 tests) — drives a real headless WebKit browser via Playwright. Covers the search bar, zoom buttons, keyboard shortcuts, and theme toggle.
+
+**Note:** the two asset tests (`test_mathjax_bundle_present`, `test_mermaid_bundle_present`) will fail until you run `bash scripts/download-assets.sh`. CI downloads them automatically.
 
 ## Project layout
 
 ```
-app.py          — PyWebView window, file watcher, CLI entry point
-renderer.py     — Markdown → HTML pipeline (the core logic)
+app.py               — PyWebView window, file watcher, CLI entry point
+renderer.py          — Markdown → HTML pipeline (the core logic)
 assets/
-  style.css     — all styling (light + dark mode, sidebar, search bar)
-  mathjax.min.js  — bundled offline (not in git, download via script)
-  mermaid.min.js  — bundled offline (not in git, download via script)
+  style.css          — all styling (light/dark themes, sidebar, search bar, controls)
+  mathjax.min.js     — bundled offline (not in git; download via script)
+  mermaid.min.js     — bundled offline (not in git; download via script)
+macos/
+  Info.plist         — app bundle metadata for the macOS shell-script .app
 tests/
-  test_renderer.py — pytest suite (55 tests across 7 classes)
+  test_renderer.py   — renderer unit tests (55 tests across 7 classes)
+  test_ui.py         — Playwright WebKit UI tests (25 tests across 3 classes)
 scripts/
   download-assets.sh — fetches JS bundles from jsDelivr CDN
-Makefile        — run / test / build / install targets
+Makefile             — run / test / build / install targets
 ```
 
 ## Making changes
 
-- **Rendering logic** lives in `renderer.py`. The `render()` function is the entry point; it returns a full HTML document string.
-- **Styling** is in `assets/style.css`. It's all plain CSS — no preprocessor.
-- **Window/app behavior** is in `app.py`.
+- **Rendering logic** lives in `renderer.py`. The `render()` function is the single entry point; it returns a full HTML document string.
+- **Styling** is in `assets/style.css`. Plain CSS — no preprocessor. Theme switching uses `data-theme` on `<html>`; the media query handles auto/OS mode.
+- **Window and app behavior** is in `app.py`.
+- **UI JavaScript** is the `_UI_JS` constant in `renderer.py`. It runs inside an IIFE on every rendered page.
 
-Add or update tests for any change to `renderer.py`. The tests in `test_renderer.py` are organized by feature area — add new test methods to the relevant existing class, or add a new class if you're adding a distinct feature.
+Add or update tests for any change to `renderer.py`. For changes to the JS or CSS, add or update tests in `test_ui.py`.
 
 ## Submitting a pull request
 
@@ -85,4 +94,4 @@ git tag v1.2.3
 git push --tags
 ```
 
-The `release.yml` workflow builds binaries for macOS, Linux, and Windows and attaches them to a GitHub Release automatically.
+The `release.yml` workflow builds binaries for Linux and Windows and attaches them to a GitHub Release automatically. macOS users install from source via `make install`.

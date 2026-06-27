@@ -85,7 +85,18 @@ def _apply_syntax_highlighting(html):
     )
 
 
-# Inline JS for search, zoom, and TOC active-section tracking
+# Injected in <head> before body renders to avoid a flash when a non-auto theme
+# was saved. localStorage is unavailable in null-origin (load_html) so the
+# try-catch is required; failure just means the page stays on auto/OS theme.
+_THEME_INIT_JS = """
+(function() {
+  var i = 0;
+  try { i = parseInt(localStorage.getItem('chomnu-theme') || '0') || 0; } catch (e) {}
+  if (i === 1) document.documentElement.setAttribute('data-theme', 'light');
+  else if (i === 2) document.documentElement.setAttribute('data-theme', 'dark');
+})();
+"""
+
 _UI_JS = """
 (function () {
   // ── Zoom ──────────────────────────────────────────────────────────────
@@ -253,31 +264,21 @@ _UI_JS = """
   document.getElementById('ctrl-search').addEventListener('click', function () {
     if (searchVisible) { hideSearch(); } else { showSearch(); }
   });
-  document.getElementById('ctrl-zoom-out').addEventListener('click', function () {
-    zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom();
-  });
-  document.getElementById('ctrl-zoom-in').addEventListener('click', function () {
-    zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom();
-  });
-  document.getElementById('ctrl-zoom-reset').addEventListener('click', function () {
-    zoom = 1; applyZoom();
-  });
+  document.getElementById('ctrl-zoom-out').addEventListener('click', function () { window.chomnu.zoomOut(); });
+  document.getElementById('ctrl-zoom-in').addEventListener('click', function () { window.chomnu.zoomIn(); });
+  document.getElementById('ctrl-zoom-reset').addEventListener('click', function () { window.chomnu.resetZoom(); });
   document.getElementById('ctrl-theme').addEventListener('click', function () {
     _themeIdx = (_themeIdx + 1) % _themes.length;
     applyTheme();
   });
 
-  // ── Keyboard shortcuts (Ctrl, not Cmd — WKWebView intercepts Cmd+F/+/-) ──
+  // ── Keyboard shortcuts (Ctrl — WKWebView intercepts Cmd+F/=/- before JS) ──
   document.addEventListener('keydown', function (e) {
     if (e.ctrlKey && e.key === 'f') { e.preventDefault(); showSearch(); }
-    if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
-      e.preventDefault(); zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom();
-    }
-    if (e.ctrlKey && e.key === '-') {
-      e.preventDefault(); zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom();
-    }
-    if (e.ctrlKey && e.key === '0') { e.preventDefault(); zoom = 1; applyZoom(); }
-    if (e.key === 'Escape' && searchBar.style.display !== 'none') { e.preventDefault(); hideSearch(); }
+    if (e.ctrlKey && (e.key === '=' || e.key === '+')) { e.preventDefault(); window.chomnu.zoomIn(); }
+    if (e.ctrlKey && e.key === '-') { e.preventDefault(); window.chomnu.zoomOut(); }
+    if (e.ctrlKey && e.key === '0') { e.preventDefault(); window.chomnu.resetZoom(); }
+    if (e.key === 'Escape' && searchVisible) { e.preventDefault(); hideSearch(); }
   }, true);
 })();
 """
@@ -345,14 +346,7 @@ def render(text):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>
-(function(){{
-  var i=0;
-  try{{i=parseInt(localStorage.getItem('chomnu-theme')||'0')||0;}}catch(e){{}}
-  if(i===1)document.documentElement.setAttribute('data-theme','light');
-  else if(i===2)document.documentElement.setAttribute('data-theme','dark');
-}})();
-</script>
+<script>{_THEME_INIT_JS}</script>
 <style>
 {css}
 {pygments_css}

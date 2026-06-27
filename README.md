@@ -10,11 +10,12 @@ Pre-built binaries are attached to every [GitHub Release](https://github.com/adi
 
 | Platform | File |
 |---|---|
-| macOS | `Chomnu-macos.zip` — extract and drag `Chomnu.app` to `/Applications` |
 | Linux | `Chomnu-linux-x86_64` — single binary, `chmod +x` and run |
 | Windows | `Chomnu-windows-x86_64.exe` — double-click to run |
 
-> **macOS note:** the binary is unsigned. On first launch right-click → Open → Open to bypass Gatekeeper.
+> **macOS:** Install from source (see below). PyInstaller bundles cannot be
+> ad-hoc signed on macOS 13+ due to stricter code-signing enforcement; the
+> source install creates a lightweight shell-script `.app` that signs cleanly.
 
 ## Features
 
@@ -22,10 +23,10 @@ Pre-built binaries are attached to every [GitHub Release](https://github.com/adi
 - **Diagrams** — Mermaid flowcharts, sequence diagrams, pie charts
 - **Syntax highlighting** — fenced code blocks via Pygments (100+ languages)
 - **Table of contents** — fixed sidebar with active-section tracking; auto-hides when no headings
-- **Search** — Cmd+F / Ctrl+F opens a floating search bar with match count and navigation
-- **Zoom** — Cmd++/Cmd+- to scale text; Cmd+0 to reset; persisted across reloads
-- **Print / PDF** — Cmd+P prints cleanly (sidebar and search bar hidden)
-- **Dark mode** — follows your system appearance automatically
+- **Search** — Ctrl+F opens a floating search bar with match count and navigation
+- **Zoom** — Ctrl+= / Ctrl+- to scale text; Ctrl+0 to reset
+- **Theme toggle** — `◐` button cycles auto / light / dark; auto follows your OS appearance
+- **Print / PDF** — Ctrl+P prints cleanly (sidebar and controls hidden)
 - **Live reload** — updates the window when the file changes on disk
 - **CLI** — `chomnu file.md` opens from any terminal
 
@@ -35,7 +36,7 @@ Pre-built binaries are attached to every [GitHub Release](https://github.com/adi
 
 ### macOS
 
-**Requirements:** Python 3.10+, conda (or pip)
+**Requirements:** Python 3.10+, conda
 
 ```bash
 git clone https://github.com/adivijaykumar/chomnu
@@ -48,13 +49,14 @@ conda run -n chomnu pip install -r requirements.txt
 # Download MathJax + Mermaid bundles (offline rendering)
 bash scripts/download-assets.sh
 
-# Build Chomnu.app and install the `chomnu` CLI command
+# Create Chomnu.app in /Applications and install the `chomnu` CLI command
 make install
 ```
 
-This copies `Chomnu.app` to `/Applications` and installs a `chomnu` wrapper
-at `~/.local/bin/chomnu`. If `~/.local/bin` is not in your PATH, add this to
-`~/.zshrc` (or `~/.bashrc`):
+This creates a shell-script `Chomnu.app` in `/Applications` (ad-hoc signed, opens
+directly from Finder) and installs a `chomnu` wrapper at `~/.local/bin/chomnu`.
+
+If `~/.local/bin` is not in your PATH, add this to `~/.zshrc`:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -75,20 +77,15 @@ Right-click any `.md` file in Finder → **Get Info** → **Open With** → sele
 git clone https://github.com/adivijaykumar/chomnu
 cd chomnu
 
-# Install Python deps
 pip install -r requirements.txt
-
-# Download MathJax + Mermaid bundles
 bash scripts/download-assets.sh
 
 # Build binary, install CLI + double-click file association
 make install-linux
 ```
 
-This:
-- Copies the binary to `~/.local/bin/chomnu`
-- Registers `chomnu.desktop` so double-clicking `.md` files in Nautilus /
-  Dolphin / Thunar opens Chomnu
+This copies the binary to `~/.local/bin/chomnu` and registers `chomnu.desktop`
+so double-clicking `.md` files in Nautilus / Dolphin / Thunar opens Chomnu.
 
 If `~/.local/bin` is not in your PATH, add to `~/.bashrc`:
 
@@ -96,8 +93,8 @@ If `~/.local/bin` is not in your PATH, add to `~/.bashrc`:
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-**Other distros:** The build requires `python3-tk` for the file picker on GTK
-desktops. Install it with your package manager:
+**Other distros:** the build requires `python3-tk` for the file picker on GTK
+desktops:
 
 ```bash
 # Arch
@@ -111,9 +108,9 @@ sudo dnf install python3-tkinter
 
 ### Windows
 
-**Requirements:** Python 3.10+ (from [python.org](https://python.org)), Git Bash or PowerShell
+**Requirements:** Python 3.10+ (from [python.org](https://python.org))
 
-**Option A — Git Bash / WSL (recommended)**
+**Git Bash:**
 
 ```bash
 git clone https://github.com/adivijaykumar/chomnu
@@ -122,18 +119,14 @@ cd chomnu
 pip install -r requirements.txt
 bash scripts/download-assets.sh
 
-# Build the .exe
 pip install pyinstaller
 pyinstaller --name Chomnu --windowed --add-data "assets;assets" --clean -y app.py
 ```
 
-The built app is at `dist\Chomnu\Chomnu.exe`.
+The built app is at `dist\Chomnu\Chomnu.exe`. Add `dist\Chomnu` to your PATH
+via System Settings → Environment Variables to get the `chomnu` command.
 
-To install the `chomnu` command, copy the binary to a folder already in your
-PATH (e.g. `C:\Windows\System32` — requires admin) or add `dist\Chomnu` to
-your PATH via System Settings → Environment Variables.
-
-**Option B — PowerShell**
+**PowerShell:**
 
 ```powershell
 git clone https://github.com/adivijaykumar/chomnu
@@ -141,7 +134,6 @@ cd chomnu
 
 pip install -r requirements.txt
 
-# Download assets
 Invoke-WebRequest "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js" `
   -OutFile assets\mathjax.min.js
 Invoke-WebRequest "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" `
@@ -151,10 +143,9 @@ pip install pyinstaller
 pyinstaller --name Chomnu --windowed --add-data "assets;assets" --clean -y app.py
 ```
 
-**Set as default app for .md files (Windows):**
-
-Right-click any `.md` file → **Open with** → **Choose another app** →
-browse to `dist\Chomnu\Chomnu.exe` → check **Always use this app**.
+**Set as default app for .md files:** right-click any `.md` file → **Open with**
+→ **Choose another app** → browse to `dist\Chomnu\Chomnu.exe` → check **Always
+use this app**.
 
 ---
 
@@ -178,10 +169,9 @@ make run FILE=path/to/file.md
 
 # Run tests
 make test
-
-# Full test suite output
-conda run -n chomnu python -m pytest tests/ -v
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full dev setup instructions.
 
 ---
 

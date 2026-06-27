@@ -20,7 +20,6 @@ def _render_file(path):
 
 
 def _watch(path, window):
-    """Background thread: reload window when file changes on disk."""
     last_mtime = None
     while True:
         try:
