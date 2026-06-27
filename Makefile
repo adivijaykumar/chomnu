@@ -1,8 +1,11 @@
 CONDA_RUN = conda run -n chomnu
 INSTALL_DIR = $(HOME)/.local/bin
 OS := $(shell uname)
-CONDA_PYTHON := $(shell conda run -n chomnu which python 2>/dev/null || echo "python3")
-REPO_DIR := $(shell pwd)
+# Lazily evaluated (=, not :=) so the subprocess only runs when CONDA_PYTHON is
+# actually expanded — i.e. during 'make install' on macOS, not on every invocation.
+CONDA_PYTHON = $(shell conda run -n chomnu which python 2>/dev/null || echo "python3")
+# abspath + MAKEFILE_LIST gives the repo root regardless of where make is invoked from.
+REPO_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 .PHONY: run test assets build install install-linux clean
 

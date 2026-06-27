@@ -74,7 +74,7 @@ class TestControlsBar:
         assert page.query_selector("#controls") is not None
 
     def test_all_buttons_present(self, page):
-        for btn in ["ctrl-search", "ctrl-zoom-out", "ctrl-zoom-reset", "ctrl-zoom-in"]:
+        for btn in ["ctrl-search", "ctrl-zoom-out", "ctrl-zoom-reset", "ctrl-zoom-in", "ctrl-theme"]:
             assert page.query_selector(f"#{btn}") is not None, f"#{btn} not found"
 
 

@@ -1,5 +1,6 @@
 import re
 import os
+import functools
 import markdown
 from markdown.extensions.fenced_code import FencedCodeExtension
 from markdown.extensions.tables import TableExtension
@@ -15,6 +16,7 @@ from pygments.util import ClassNotFound
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 
+@functools.lru_cache(maxsize=None)
 def _load_asset(name):
     path = os.path.join(ASSETS_DIR, name)
     if os.path.exists(path):
@@ -113,7 +115,7 @@ _UI_JS = """
   // Cycle: 0=auto (follows OS), 1=light, 2=dark
   var _themes = ['auto', 'light', 'dark'];
   var _themeIcons = ['◐', '☀', '☾'];
-  var _themeLabels = ['Theme: auto', 'Theme: light', 'Theme: dark'];
+  var _themeLabels = _themes.map(function(t) { return 'Theme: ' + t; });
   var _themeIdx = 0;
   try { _themeIdx = Math.min(2, Math.max(0, parseInt(localStorage.getItem('chomnu-theme') || '0') || 0)); } catch (e) {}
 
@@ -331,15 +333,25 @@ def render(text):
         <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js"></script>
         <script>window.MathJax = {{ tex: {{ inlineMath: [['\\\\(','\\\\)']], displayMath: [['\\\\[','\\\\]']] }}, options: {{ enableMenu: false }} }};</script>"""
 
+    # Detect the active theme at runtime so mermaid diagrams match light/dark mode.
+    # _THEME_INIT_JS has already set data-theme on <html> before this script runs.
+    _mermaid_init = """
+        (function() {
+          var el = document.documentElement;
+          var isDark = el.getAttribute('data-theme') === 'dark' ||
+            (!el.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          mermaid.initialize({ startOnLoad: true, theme: isDark ? 'dark' : 'default' });
+        })();"""
+
     mermaid_block = ""
     if has_mermaid and mermaid_js:
         mermaid_block = f"""
         <script>{mermaid_js}</script>
-        <script>mermaid.initialize({{ startOnLoad: true, theme: 'default' }});</script>"""
+        <script>{_mermaid_init}</script>"""
     elif has_mermaid:
-        mermaid_block = """
+        mermaid_block = f"""
         <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-        <script>mermaid.initialize({{ startOnLoad: true }});</script>"""
+        <script>{_mermaid_init}</script>"""
 
     return f"""<!DOCTYPE html>
 <html>
