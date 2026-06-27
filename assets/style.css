@@ -128,7 +128,7 @@ article {
     right: 1rem;
     display: flex;
     gap: 2px;
-    z-index: 150;
+    z-index: 200;
 }
 
 #controls button {
@@ -151,7 +151,7 @@ article {
 
 #search-bar {
     position: fixed;
-    top: 1rem;
+    top: 3rem;   /* below the controls bar */
     right: 1rem;
     display: none;
     align-items: center;

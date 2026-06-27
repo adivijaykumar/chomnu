@@ -26,7 +26,10 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Playwright browser
+        run: playwright install webkit --with-deps
 
       - name: Download assets (curl)
         shell: bash

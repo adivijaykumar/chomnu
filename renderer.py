@@ -89,10 +89,12 @@ def _apply_syntax_highlighting(html):
 _UI_JS = """
 (function () {
   // ── Zoom ──────────────────────────────────────────────────────────────
-  var zoom = parseFloat(localStorage.getItem('chomnu-zoom') || '1');
+  // localStorage throws SecurityError in null-origin contexts (load_html / set_content)
+  var zoom = 1;
+  try { zoom = parseFloat(localStorage.getItem('chomnu-zoom') || '1') || 1; } catch (e) {}
   function applyZoom() {
     document.documentElement.style.fontSize = (16 * zoom) + 'px';
-    localStorage.setItem('chomnu-zoom', String(zoom));
+    try { localStorage.setItem('chomnu-zoom', String(zoom)); } catch (e) {}
   }
   applyZoom();
 
@@ -103,15 +105,18 @@ _UI_JS = """
     sidebar.style.display = 'none';
     if (mainContent) mainContent.style.marginLeft = '0';
   } else if (sidebar) {
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        var link = sidebar.querySelector('a[href="#' + e.target.id + '"]');
-        if (link) link.classList.toggle('toc-active', e.isIntersecting);
+    // rootMargin must use px (not %) when root is null — WKWebView throws otherwise
+    try {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          var link = sidebar.querySelector('a[href="#' + e.target.id + '"]');
+          if (link) link.classList.toggle('toc-active', e.isIntersecting);
+        });
+      }, { rootMargin: '-80px 0px -300px 0px' });
+      document.querySelectorAll('article [id]').forEach(function (el) {
+        observer.observe(el);
       });
-    }, { rootMargin: '-10% 0px -70% 0px' });
-    document.querySelectorAll('article [id]').forEach(function (el) {
-      observer.observe(el);
-    });
+    } catch (err) { /* IntersectionObserver unsupported or bad config — skip active tracking */ }
   }
 
   // ── Search ────────────────────────────────────────────────────────────
@@ -122,12 +127,13 @@ _UI_JS = """
 
   var marks = [];
   var currentIdx = -1;
+  var searchVisible = false;
 
   function clearMarks() {
     marks.forEach(function (m) {
       if (m.parentNode) {
+        // Don't call normalize() here — it can invalidate sibling mark references
         m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
-        m.parentNode.normalize();
       }
     });
     marks = [];
@@ -189,12 +195,14 @@ _UI_JS = """
 
   function showSearch() {
     searchBar.style.display = 'flex';
+    searchVisible = true;
     searchInput.focus();
     searchInput.select();
   }
 
   function hideSearch() {
     searchBar.style.display = 'none';
+    searchVisible = false;
     clearMarks();
     searchInput.value = '';
   }
@@ -209,7 +217,7 @@ _UI_JS = """
 
   // ── Controls bar buttons ──────────────────────────────────────────────
   document.getElementById('ctrl-search').addEventListener('click', function () {
-    if (searchBar.style.display !== 'none') { hideSearch(); } else { showSearch(); }
+    if (searchVisible) { hideSearch(); } else { showSearch(); }
   });
   document.getElementById('ctrl-zoom-out').addEventListener('click', function () {
     zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom();

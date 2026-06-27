@@ -8,7 +8,12 @@ OS := $(shell uname)
 run:
 	$(CONDA_RUN) python app.py $(FILE)
 
-# Run tests
+# Install dev dependencies (Playwright + browser — run once after cloning)
+install-dev:
+	$(CONDA_RUN) pip install -r requirements-dev.txt
+	$(CONDA_RUN) playwright install webkit
+
+# Run tests (renderer unit tests + UI tests via Playwright)
 test:
 	$(CONDA_RUN) python -m pytest tests/ -v
 
