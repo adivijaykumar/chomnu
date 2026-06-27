@@ -9,6 +9,45 @@ import renderer
 TITLE = "Chomnu"
 WATCH_INTERVAL = 0.5  # seconds between file-change checks
 
+# Kept alive so the monitor isn't garbage-collected while the app runs
+_cmd_shortcut_monitor = None
+
+
+def _install_cmd_shortcuts(window):
+    """macOS only: intercept Cmd+F/=/−/0 at the app level before WKWebView consumes them.
+
+    WKWebView handles Cmd+F (native find) and Cmd+=/− (native zoom) in the
+    responder chain before JavaScript ever sees the keydown event. An NSEvent
+    local monitor fires earlier and lets us route those keys to our own JS
+    functions instead, giving users the familiar Cmd shortcuts they expect on Mac.
+
+    PyObjC ships as a transitive dependency of PyWebView on macOS, so no extra
+    package is needed.
+    """
+    global _cmd_shortcut_monitor
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSEvent, NSEventModifierFlagCommand
+        NSEventMaskKeyDown = 1 << 10  # NSEventType.keyDown = 10
+
+        _key_map = {"f": "showSearch", "=": "zoomIn", "-": "zoomOut", "0": "resetZoom"}
+
+        def _handler(event):
+            if event.modifierFlags() & NSEventModifierFlagCommand:
+                key = event.charactersIgnoringModifiers()
+                fn = _key_map.get(key)
+                if fn:
+                    window.evaluate_js(f"window.chomnu && window.chomnu.{fn}()")
+                    return None  # consume — don't forward to WKWebView
+            return event  # pass everything else through
+
+        _cmd_shortcut_monitor = NSEvent.addLocalMonitorForEventsMatchingMask_handler_(
+            NSEventMaskKeyDown, _handler
+        )
+    except Exception:
+        pass  # PyObjC unavailable or error — Ctrl shortcuts remain functional
+
 
 def _render_file(path):
     try:
@@ -62,8 +101,10 @@ def open_file(path=None):
         easy_drag=False,   # allow text selection instead of dragging the window
     )
 
-    # File watcher runs in background once the window is ready
+    # File watcher + macOS Cmd-shortcut monitor start once the window is ready.
+    # on_shown fires on the main (GUI) thread, which is required for NSEvent monitors.
     def on_shown():
+        _install_cmd_shortcuts(window)
         t = threading.Thread(target=_watch, args=(path, window), daemon=True)
         t.start()
 

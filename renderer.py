@@ -215,6 +215,15 @@ _UI_JS = """
   document.getElementById('search-next').addEventListener('click', function () { gotoMatch(currentIdx + 1); });
   document.getElementById('search-close').addEventListener('click', hideSearch);
 
+  // ── Expose API for Python → JS calls (e.g. macOS Cmd shortcuts) ──────
+  window.chomnu = {
+    showSearch: showSearch,
+    hideSearch: hideSearch,
+    zoomIn:    function() { zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom(); },
+    zoomOut:   function() { zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom(); },
+    resetZoom: function() { zoom = 1; applyZoom(); }
+  };
+
   // ── Controls bar buttons ──────────────────────────────────────────────
   document.getElementById('ctrl-search').addEventListener('click', function () {
     if (searchVisible) { hideSearch(); } else { showSearch(); }
@@ -325,10 +334,10 @@ def render(text):
 </article>
 </div>
 <div id="controls">
-  <button id="ctrl-search" title="Search (Ctrl+F)">⌕</button>
-  <button id="ctrl-zoom-out" title="Zoom out (Ctrl+-)">−</button>
-  <button id="ctrl-zoom-reset" title="Reset zoom (Ctrl+0)">A</button>
-  <button id="ctrl-zoom-in" title="Zoom in (Ctrl+=)">+</button>
+  <button id="ctrl-search" title="Search (⌘F / Ctrl+F)">⌕</button>
+  <button id="ctrl-zoom-out" title="Zoom out (⌘- / Ctrl+-)">−</button>
+  <button id="ctrl-zoom-reset" title="Reset zoom (⌘0 / Ctrl+0)">A</button>
+  <button id="ctrl-zoom-in" title="Zoom in (⌘= / Ctrl+=)">+</button>
 </div>
 <div id="search-bar">
   <input type="text" id="search-input" placeholder="Search…" autocomplete="off" spellcheck="false">
