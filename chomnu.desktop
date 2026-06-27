@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Chomnu
+Comment=Lightweight Markdown reader
+Exec=python3 /opt/chomnu/app.py %f
+Icon=/opt/chomnu/assets/icon.png
+Terminal=false
+Type=Application
+MimeType=text/markdown;text/x-markdown;
+Categories=Utility;TextEditor;Viewer;
+StartupNotify=false

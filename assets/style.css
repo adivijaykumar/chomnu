@@ -1,0 +1,174 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --fg-muted: #6b7280;
+    --border: #e5e7eb;
+    --code-bg: #f6f8fa;
+    --code-fg: #24292e;
+    --link: #0969da;
+    --mark-bg: #fff8c5;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0d1117;
+        --fg: #e6edf3;
+        --fg-muted: #8b949e;
+        --border: #30363d;
+        --code-bg: #161b22;
+        --code-fg: #e6edf3;
+        --link: #58a6ff;
+        --mark-bg: #3d3000;
+    }
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 2rem 1rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+        Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+}
+
+article {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.25;
+    font-weight: 600;
+}
+h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
+
+/* Paragraphs & lists */
+p { margin: 0.75em 0; }
+ul, ol { padding-left: 2em; margin: 0.75em 0; }
+li + li { margin-top: 0.25em; }
+li > p { margin: 0.25em 0; }
+
+/* Links */
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Blockquote */
+blockquote {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid var(--border);
+    color: var(--fg-muted);
+}
+blockquote > :first-child { margin-top: 0; }
+blockquote > :last-child { margin-bottom: 0; }
+
+/* Horizontal rule */
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5em 0;
+}
+
+/* Inline code */
+code {
+    font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
+        "Liberation Mono", monospace;
+    font-size: 0.875em;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+}
+
+/* Code blocks */
+pre {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 1em;
+    overflow-x: auto;
+    margin: 1em 0;
+    line-height: 1.45;
+}
+pre code {
+    background: transparent;
+    padding: 0;
+    font-size: 0.875em;
+    color: var(--code-fg);
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    font-size: 0.9em;
+}
+th, td {
+    border: 1px solid var(--border);
+    padding: 0.5em 0.75em;
+    text-align: left;
+}
+th { background: var(--code-bg); font-weight: 600; }
+tr:nth-child(even) td { background: var(--code-bg); }
+
+/* Images */
+img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* Mark / highlight */
+mark { background: var(--mark-bg); border-radius: 2px; padding: 0 2px; }
+
+/* Mermaid diagrams */
+.mermaid {
+    display: flex;
+    justify-content: center;
+    margin: 1.5em 0;
+    overflow-x: auto;
+}
+
+/* Math display blocks */
+.arithmatex:has(mjx-container[display="true"]) {
+    display: block;
+    text-align: center;
+    margin: 1.25em 0;
+    overflow-x: auto;
+}
+
+/* Pygments dark-mode invert for light themes */
+@media (prefers-color-scheme: dark) {
+    .highlight .hll { background-color: #3d4451; }
+    .highlight  { background: var(--code-bg); color: var(--code-fg); }
+    .highlight .c  { color: #8b949e; font-style: italic; }
+    .highlight .k  { color: #ff7b72; }
+    .highlight .o  { color: #ff7b72; }
+    .highlight .n  { color: #e6edf3; }
+    .highlight .s  { color: #a5d6ff; }
+    .highlight .m  { color: #79c0ff; }
+    .highlight .nb { color: #79c0ff; }
+    .highlight .nf { color: #d2a8ff; }
+    .highlight .nc { color: #f0883e; }
+    .highlight .nn { color: #f0883e; }
+    .highlight .na { color: #79c0ff; }
+    .highlight .p  { color: #e6edf3; }
+    .highlight .cm { color: #8b949e; font-style: italic; }
+    .highlight .cp { color: #8b949e; }
+    .highlight .c1 { color: #8b949e; font-style: italic; }
+    .highlight .cs { color: #8b949e; font-style: italic; }
+    .highlight .kd { color: #ff7b72; }
+    .highlight .kn { color: #ff7b72; }
+    .highlight .kr { color: #ff7b72; }
+    .highlight .se { color: #79c0ff; }
+}
