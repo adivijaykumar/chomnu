@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest
+
+      - name: Download assets (curl)
+        shell: bash
+        run: |
+          curl -fsSL "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js" \
+            -o assets/mathjax.min.js
+          curl -fsSL "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" \
+            -o assets/mermaid.min.js
+
+      - name: Run tests
+        run: python -m pytest tests/ -v

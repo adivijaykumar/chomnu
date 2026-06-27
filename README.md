@@ -1,87 +1,186 @@
 # Chomnu
 
-A lightweight Markdown reader for Linux, Windows, and macOS. Double-click any `.md` file to open it in a clean native window with full rendering support — math, diagrams, syntax highlighting, dark mode.
+A lightweight Markdown reader for macOS, Linux, and Windows. Double-click any `.md` file — or run `chomnu file.md` — to open it in a clean native window with full rendering support.
+
+[![Tests](https://github.com/adivijaykumar/chomnu/actions/workflows/test.yml/badge.svg)](https://github.com/adivijaykumar/chomnu/actions/workflows/test.yml)
 
 ## Features
 
-- **Math** — inline (`$x^2$`) and display (`$$\int f\,dx$$`) via MathJax
+- **Math** — inline (`$x^2$`) and display (`$$\int f\,dx$$`) via MathJax, fully offline
 - **Diagrams** — Mermaid flowcharts, sequence diagrams, pie charts
-- **Syntax highlighting** — fenced code blocks via Pygments
-- **Dark mode** — follows your system appearance
-- **File watching** — updates live when the file changes on disk
-- **Offline** — all assets bundled, no internet required
+- **Syntax highlighting** — fenced code blocks via Pygments (100+ languages)
+- **Dark mode** — follows your system appearance automatically
+- **Live reload** — updates the window when the file changes on disk
+- **CLI** — `chomnu file.md` opens from any terminal
 
-## Install
+---
 
-### 1. Clone and set up
-
-```bash
-git clone https://github.com/yourusername/chomnu
-cd chomnu
-pip install -r requirements.txt
-bash scripts/download-assets.sh
-```
-
-### 2. Run
-
-```bash
-python3 app.py path/to/file.md
-# or just
-python3 app.py   # opens a file picker
-```
-
-### Linux — set as default app for .md files
-
-```bash
-# Install to /opt/chomnu
-sudo cp -r . /opt/chomnu
-
-# Register the desktop entry
-sudo cp chomnu.desktop /usr/share/applications/
-sudo update-desktop-database
-
-# Set as default for Markdown files
-xdg-mime default chomnu.desktop text/markdown
-```
-
-Now double-clicking any `.md` file in your file manager opens it in Chomnu.
-
-### Windows — set as default app
-
-1. Right-click any `.md` file → Open with → Choose another app
-2. Browse to `app.py` (or a packaged `.exe` if using PyInstaller)
-3. Check "Always use this app"
+## Installation
 
 ### macOS
 
-Works the same way — pywebview uses WKWebView natively. You can set it as default via System Settings → General → Default applications, or just run from terminal.
+**Requirements:** Python 3.10+, conda (or pip)
+
+```bash
+git clone https://github.com/adivijaykumar/chomnu
+cd chomnu
+
+# Create environment and install Python deps
+conda create -n chomnu python=3.12 -y
+conda run -n chomnu pip install -r requirements.txt
+
+# Download MathJax + Mermaid bundles (offline rendering)
+bash scripts/download-assets.sh
+
+# Build Chomnu.app and install the `chomnu` CLI command
+make install
+```
+
+This copies `Chomnu.app` to `/Applications` and installs a `chomnu` wrapper
+at `~/.local/bin/chomnu`. If `~/.local/bin` is not in your PATH, add this to
+`~/.zshrc` (or `~/.bashrc`):
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+**Set as default app for .md files:**
+
+Right-click any `.md` file in Finder → **Get Info** → **Open With** → select
+**Chomnu** → click **Change All**.
+
+---
+
+### Linux (Ubuntu / Debian)
+
+**Requirements:** Python 3.10+, pip, curl
+
+```bash
+git clone https://github.com/adivijaykumar/chomnu
+cd chomnu
+
+# Install Python deps
+pip install -r requirements.txt
+
+# Download MathJax + Mermaid bundles
+bash scripts/download-assets.sh
+
+# Build binary, install CLI + double-click file association
+make install-linux
+```
+
+This:
+- Copies the binary to `~/.local/bin/chomnu`
+- Registers `chomnu.desktop` so double-clicking `.md` files in Nautilus /
+  Dolphin / Thunar opens Chomnu
+
+If `~/.local/bin` is not in your PATH, add to `~/.bashrc`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+**Other distros:** The build requires `python3-tk` for the file picker on GTK
+desktops. Install it with your package manager:
+
+```bash
+# Arch
+sudo pacman -S tk
+
+# Fedora / RHEL
+sudo dnf install python3-tkinter
+```
+
+---
+
+### Windows
+
+**Requirements:** Python 3.10+ (from [python.org](https://python.org)), Git Bash or PowerShell
+
+**Option A — Git Bash / WSL (recommended)**
+
+```bash
+git clone https://github.com/adivijaykumar/chomnu
+cd chomnu
+
+pip install -r requirements.txt
+bash scripts/download-assets.sh
+
+# Build the .exe
+pip install pyinstaller
+pyinstaller --name Chomnu --windowed --add-data "assets;assets" --clean -y app.py
+```
+
+The built app is at `dist\Chomnu\Chomnu.exe`.
+
+To install the `chomnu` command, copy the binary to a folder already in your
+PATH (e.g. `C:\Windows\System32` — requires admin) or add `dist\Chomnu` to
+your PATH via System Settings → Environment Variables.
+
+**Option B — PowerShell**
+
+```powershell
+git clone https://github.com/adivijaykumar/chomnu
+cd chomnu
+
+pip install -r requirements.txt
+
+# Download assets
+Invoke-WebRequest "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js" `
+  -OutFile assets\mathjax.min.js
+Invoke-WebRequest "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" `
+  -OutFile assets\mermaid.min.js
+
+pip install pyinstaller
+pyinstaller --name Chomnu --windowed --add-data "assets;assets" --clean -y app.py
+```
+
+**Set as default app for .md files (Windows):**
+
+Right-click any `.md` file → **Open with** → **Choose another app** →
+browse to `dist\Chomnu\Chomnu.exe` → check **Always use this app**.
+
+---
+
+## Usage
+
+```bash
+chomnu file.md          # open a specific file
+chomnu                  # open a file picker
+```
+
+The window live-reloads whenever the file is saved. Text is selectable and
+copyable with the standard keyboard shortcuts (⌘C / Ctrl+C).
+
+---
+
+## Development
+
+```bash
+# Run from source (no build needed)
+make run FILE=path/to/file.md
+
+# Run tests
+make test
+
+# Full test suite output
+conda run -n chomnu python -m pytest tests/ -v
+```
+
+---
 
 ## Dependencies
 
 | Package | Purpose |
 |---|---|
-| `pywebview` | Native window + webview per OS |
+| `pywebview` | Native window + webview (WKWebView / WebKitGTK / WebView2) |
 | `Markdown` | Markdown → HTML |
-| `pymdown-extensions` | Math protection (arithmatex) |
+| `pymdown-extensions` | Math protection (`arithmatex`) |
 | `Pygments` | Syntax highlighting |
+| MathJax 3 | TeX math rendering (bundled, offline) |
+| Mermaid | Diagram rendering (bundled, offline) |
 
-## Testing with Docker (Linux)
-
-```bash
-docker run -it --rm \
-  -v $(pwd):/chomnu \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  ubuntu:24.04 bash
-
-# Inside container:
-apt-get update && apt-get install -y python3 python3-pip python3-gi \
-  gir1.2-webkit2-4.1 libgtk-4-dev python3-tk
-cd /chomnu
-pip install -r requirements.txt
-bash scripts/download-assets.sh
-python3 app.py sample.md
-```
+---
 
 ## License
 
