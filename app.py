@@ -59,6 +59,7 @@ def open_file(path=None):
         width=860,
         height=960,
         min_size=(400, 300),
+        easy_drag=False,   # allow text selection instead of dragging the window
     )
 
     # File watcher runs in background once the window is ready

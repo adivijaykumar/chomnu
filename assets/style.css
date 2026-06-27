@@ -1,5 +1,12 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Enable text selection and standard cursor throughout */
+body, article, p, h1, h2, h3, h4, h5, h6, li, td, th, blockquote, pre, code {
+    -webkit-user-select: text;
+    user-select: text;
+    cursor: auto;
+}
+
 :root {
     --bg: #ffffff;
     --fg: #1a1a1a;

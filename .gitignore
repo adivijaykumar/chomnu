@@ -7,3 +7,6 @@ build/
 venv/
 assets/mathjax.min.js
 assets/mermaid.min.js
+dist/
+build/
+*.spec
