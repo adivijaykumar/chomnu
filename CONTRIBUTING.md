@@ -30,7 +30,7 @@ conda run -n chomnu python app.py path/to/file.md
 # Install Playwright (first time only)
 make install-dev
 
-# Run all 80 tests
+# Run all 93 tests
 make test
 ```
 
