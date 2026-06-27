@@ -31,7 +31,7 @@ def _install_cmd_shortcuts(window):
         from AppKit import NSEvent, NSEventModifierFlagCommand
         NSEventMaskKeyDown = 1 << 10  # NSEventType.keyDown = 10
 
-        _key_map = {"f": "showSearch", "=": "zoomIn", "-": "zoomOut", "0": "resetZoom"}
+        _key_map = {"f": "showSearch", "=": "zoomIn", "+": "zoomIn", "-": "zoomOut", "0": "resetZoom"}
 
         def _handler(event):
             if event.modifierFlags() & NSEventModifierFlagCommand:
