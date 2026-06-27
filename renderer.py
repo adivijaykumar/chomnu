@@ -207,19 +207,32 @@ _UI_JS = """
   document.getElementById('search-next').addEventListener('click', function () { gotoMatch(currentIdx + 1); });
   document.getElementById('search-close').addEventListener('click', hideSearch);
 
-  // ── Keyboard shortcuts ────────────────────────────────────────────────
+  // ── Controls bar buttons ──────────────────────────────────────────────
+  document.getElementById('ctrl-search').addEventListener('click', function () {
+    if (searchBar.style.display !== 'none') { hideSearch(); } else { showSearch(); }
+  });
+  document.getElementById('ctrl-zoom-out').addEventListener('click', function () {
+    zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom();
+  });
+  document.getElementById('ctrl-zoom-in').addEventListener('click', function () {
+    zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom();
+  });
+  document.getElementById('ctrl-zoom-reset').addEventListener('click', function () {
+    zoom = 1; applyZoom();
+  });
+
+  // ── Keyboard shortcuts (Ctrl, not Cmd — WKWebView intercepts Cmd+F/+/-) ──
   document.addEventListener('keydown', function (e) {
-    var mod = e.metaKey || e.ctrlKey;
-    if (mod && e.key === 'f') { e.preventDefault(); showSearch(); }
-    if (mod && (e.key === '=' || e.key === '+')) {
+    if (e.ctrlKey && e.key === 'f') { e.preventDefault(); showSearch(); }
+    if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
       e.preventDefault(); zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom();
     }
-    if (mod && e.key === '-') {
+    if (e.ctrlKey && e.key === '-') {
       e.preventDefault(); zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom();
     }
-    if (mod && e.key === '0') { e.preventDefault(); zoom = 1; applyZoom(); }
+    if (e.ctrlKey && e.key === '0') { e.preventDefault(); zoom = 1; applyZoom(); }
     if (e.key === 'Escape' && searchBar.style.display !== 'none') { e.preventDefault(); hideSearch(); }
-  });
+  }, true);
 })();
 """
 
@@ -302,6 +315,12 @@ def render(text):
 <article>
 {body}
 </article>
+</div>
+<div id="controls">
+  <button id="ctrl-search" title="Search (Ctrl+F)">⌕</button>
+  <button id="ctrl-zoom-out" title="Zoom out (Ctrl+-)">−</button>
+  <button id="ctrl-zoom-reset" title="Reset zoom (Ctrl+0)">A</button>
+  <button id="ctrl-zoom-in" title="Zoom in (Ctrl+=)">+</button>
 </div>
 <div id="search-bar">
   <input type="text" id="search-input" placeholder="Search…" autocomplete="off" spellcheck="false">

@@ -120,6 +120,33 @@ article {
     #main-content { margin-left: 0 !important; }
 }
 
+/* ── Controls bar (search + zoom buttons) ─────────────────────────────── */
+
+#controls {
+    position: fixed;
+    top: 0.6rem;
+    right: 1rem;
+    display: flex;
+    gap: 2px;
+    z-index: 150;
+}
+
+#controls button {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg-muted);
+    cursor: pointer;
+    padding: 0.2em 0.45em;
+    border-radius: 4px;
+    font-size: 0.82em;
+    line-height: 1.4;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+    font-family: inherit;
+}
+
+#controls button:hover { opacity: 1; color: var(--fg); }
+
 /* ── Search bar ─────────────────────────────────────────────────────────── */
 
 #search-bar {
@@ -306,7 +333,7 @@ mark { background: var(--mark-bg); border-radius: 2px; padding: 0 2px; }
 /* ── Print ──────────────────────────────────────────────────────────────── */
 
 @media print {
-    #toc-sidebar, #search-bar { display: none !important; }
+    #toc-sidebar, #search-bar, #controls { display: none !important; }
     #main-content { margin-left: 0 !important; padding: 0 !important; }
     article { max-width: 100% !important; }
     a { color: inherit; }
