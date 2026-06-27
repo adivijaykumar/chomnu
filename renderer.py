@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import functools
 import markdown
 from markdown.extensions.fenced_code import FencedCodeExtension
@@ -13,7 +14,13 @@ from pygments.lexers import get_lexer_by_name, guess_lexer, TextLexer
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
-ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
+# In a py2app bundle sys.frozen is set and sys.executable points to
+# Contents/MacOS/Chomnu, so assets live at ../Resources/assets from there.
+# In dev, __file__ gives the repo root directly.
+if getattr(sys, 'frozen', False):
+    ASSETS_DIR = os.path.join(os.path.dirname(sys.executable), '..', 'Resources', 'assets')
+else:
+    ASSETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
 
 
 @functools.lru_cache(maxsize=None)

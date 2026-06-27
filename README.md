@@ -10,12 +10,9 @@ Pre-built binaries are attached to every [GitHub Release](https://github.com/adi
 
 | Platform | File |
 |---|---|
+| macOS | `Chomnu-macos.zip` — unzip, drag `Chomnu.app` to `/Applications` |
 | Linux | `Chomnu-linux-x86_64` — single binary, `chmod +x` and run |
 | Windows | `Chomnu-windows-x86_64.exe` — double-click to run |
-
-> **macOS:** Install from source (see below). PyInstaller bundles cannot be
-> ad-hoc signed on macOS 13+ due to stricter code-signing enforcement; the
-> source install creates a lightweight shell-script `.app` that signs cleanly.
 
 ## Features
 

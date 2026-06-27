@@ -53,6 +53,44 @@ jobs:
           files: Chomnu-linux-x86_64
           generate_release_notes: true
 
+  # ── macOS ───────────────────────────────────────────────────────────────
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt py2app
+
+      - name: Download assets
+        run: |
+          curl -fsSL "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg-full.js" \
+            -o assets/mathjax.min.js
+          curl -fsSL "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" \
+            -o assets/mermaid.min.js
+
+      - name: Build .app
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: python setup.py py2app
+
+      - name: Ad-hoc sign
+        run: codesign --force --deep --sign - dist/Chomnu.app
+
+      - name: Zip
+        run: cd dist && zip -r ../Chomnu-macos.zip Chomnu.app
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Chomnu-macos.zip
+
   # ── Windows ─────────────────────────────────────────────────────────────
   build-windows:
     name: Build Windows
