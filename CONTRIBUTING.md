@@ -30,14 +30,13 @@ conda run -n chomnu python app.py path/to/file.md
 # Install Playwright (first time only)
 make install-dev
 
-# Run all 93 tests
 make test
 ```
 
 The suite has two parts:
 
-- **`tests/test_renderer.py`** (61 tests) — covers the Markdown→HTML pipeline. Runs headlessly, no display needed.
-- **`tests/test_ui.py`** (32 tests) — drives a real headless WebKit browser via Playwright. Covers the search bar, zoom buttons, keyboard shortcuts, and theme toggle.
+- **`tests/test_renderer.py`** — covers the Markdown→HTML pipeline. Runs headlessly, no display needed.
+- **`tests/test_ui.py`** — drives a real headless WebKit browser via Playwright. Covers the search bar, zoom buttons, keyboard shortcuts, and theme toggle.
 
 **Note:** the two asset tests (`test_mathjax_bundle_present`, `test_mermaid_bundle_present`) will fail until you run `bash scripts/download-assets.sh`. CI downloads them automatically.
 
@@ -53,8 +52,8 @@ assets/
 macos/
   Info.plist         — app bundle metadata for the macOS shell-script .app
 tests/
-  test_renderer.py   — renderer unit tests (61 tests across 10 classes)
-  test_ui.py         — Playwright WebKit UI tests (32 tests across 4 classes)
+  test_renderer.py   — renderer unit tests
+  test_ui.py         — Playwright WebKit UI tests
 scripts/
   download-assets.sh — fetches JS bundles from jsDelivr CDN
 Makefile             — run / test / build / install targets
