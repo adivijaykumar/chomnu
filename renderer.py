@@ -4,7 +4,7 @@ import markdown
 from markdown.extensions.fenced_code import FencedCodeExtension
 from markdown.extensions.tables import TableExtension
 from markdown.extensions.nl2br import Nl2BrExtension
-from markdown.extensions.sane_lists import SaneListsExtension
+from markdown.extensions.sane_lists import SaneListExtension
 from markdown.extensions.smarty import SmartyExtension
 from pymdownx.arithmatex import ArithmatexExtension
 from pygments import highlight
@@ -101,7 +101,7 @@ def render(text):
             FencedCodeExtension(),
             TableExtension(),
             Nl2BrExtension(),
-            SaneListsExtension(),
+            SaneListExtension(),
             "markdown.extensions.attr_list",
             "markdown.extensions.def_list",
             "markdown.extensions.admonition",
