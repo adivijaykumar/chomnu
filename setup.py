@@ -14,8 +14,9 @@ DATA_FILES = [
 ]
 OPTIONS = {
     'argv_emulation': False,
-    'infoplist_file': 'macos/Info.plist',
+    'plist': 'macos/Info.plist',
     'packages': ['webview', 'markdown', 'pymdownx', 'pygments'],
+    'excludes': ['PyInstaller'],
     'includes': [
         'webview.platforms.cocoa',
         'markdown.extensions.fenced_code',
