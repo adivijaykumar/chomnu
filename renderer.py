@@ -5,7 +5,7 @@ from markdown.extensions.fenced_code import FencedCodeExtension
 from markdown.extensions.tables import TableExtension
 from markdown.extensions.nl2br import Nl2BrExtension
 from markdown.extensions.sane_lists import SaneListExtension
-from markdown.extensions.smarty import SmartyExtension
+from markdown.extensions.toc import TocExtension
 from pymdownx.arithmatex import ArithmatexExtension
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer, TextLexer
@@ -59,13 +59,6 @@ def _restore_mermaid(html, blocks):
     return html
 
 
-class _HighlightingFencedCode(FencedCodeExtension):
-    """FencedCode that routes blocks through Pygments."""
-
-    def extendMarkdown(self, md):
-        super().extendMarkdown(md)
-
-
 def _apply_syntax_highlighting(html):
     """Post-process <code class="language-X"> blocks with Pygments."""
 
@@ -92,6 +85,145 @@ def _apply_syntax_highlighting(html):
     )
 
 
+# Inline JS for search, zoom, and TOC active-section tracking
+_UI_JS = """
+(function () {
+  // ── Zoom ──────────────────────────────────────────────────────────────
+  var zoom = parseFloat(localStorage.getItem('chomnu-zoom') || '1');
+  function applyZoom() {
+    document.documentElement.style.fontSize = (16 * zoom) + 'px';
+    localStorage.setItem('chomnu-zoom', String(zoom));
+  }
+  applyZoom();
+
+  // ── TOC: hide sidebar when empty, highlight active section ────────────
+  var sidebar = document.getElementById('toc-sidebar');
+  var mainContent = document.getElementById('main-content');
+  if (sidebar && !sidebar.querySelector('a')) {
+    sidebar.style.display = 'none';
+    if (mainContent) mainContent.style.marginLeft = '0';
+  } else if (sidebar) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var link = sidebar.querySelector('a[href="#' + e.target.id + '"]');
+        if (link) link.classList.toggle('toc-active', e.isIntersecting);
+      });
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    document.querySelectorAll('article [id]').forEach(function (el) {
+      observer.observe(el);
+    });
+  }
+
+  // ── Search ────────────────────────────────────────────────────────────
+  var searchBar = document.getElementById('search-bar');
+  var searchInput = document.getElementById('search-input');
+  var searchInfo = document.getElementById('search-info');
+  var article = document.querySelector('article');
+
+  var marks = [];
+  var currentIdx = -1;
+
+  function clearMarks() {
+    marks.forEach(function (m) {
+      if (m.parentNode) {
+        m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+        m.parentNode.normalize();
+      }
+    });
+    marks = [];
+    currentIdx = -1;
+    updateInfo();
+  }
+
+  function updateInfo() {
+    if (!marks.length) {
+      searchInfo.textContent = searchInput.value ? 'No results' : '';
+    } else {
+      searchInfo.textContent = (currentIdx + 1) + ' / ' + marks.length;
+    }
+  }
+
+  function doSearch(query) {
+    clearMarks();
+    if (!query) return;
+    var lower = query.toLowerCase();
+    var walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        var tag = node.parentElement && node.parentElement.tagName.toLowerCase();
+        return ['script', 'style', 'mark'].indexOf(tag) !== -1
+          ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var textNodes = [];
+    var n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+    textNodes.forEach(function (textNode) {
+      var text = textNode.textContent;
+      var lText = text.toLowerCase();
+      if (lText.indexOf(lower) === -1) return;
+      var frag = document.createDocumentFragment();
+      var last = 0, idx;
+      while ((idx = lText.indexOf(lower, last)) !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var mark = document.createElement('mark');
+        mark.className = 'chomnu-match';
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        marks.push(mark);
+        last = idx + query.length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      textNode.parentNode.replaceChild(frag, textNode);
+    });
+    if (marks.length) gotoMatch(0); else updateInfo();
+  }
+
+  function gotoMatch(idx) {
+    if (!marks.length) return;
+    if (currentIdx >= 0) marks[currentIdx].classList.remove('chomnu-current');
+    currentIdx = ((idx % marks.length) + marks.length) % marks.length;
+    marks[currentIdx].classList.add('chomnu-current');
+    marks[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    updateInfo();
+  }
+
+  function showSearch() {
+    searchBar.style.display = 'flex';
+    searchInput.focus();
+    searchInput.select();
+  }
+
+  function hideSearch() {
+    searchBar.style.display = 'none';
+    clearMarks();
+    searchInput.value = '';
+  }
+
+  searchInput.addEventListener('input', function () { doSearch(searchInput.value); });
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); gotoMatch(e.shiftKey ? currentIdx - 1 : currentIdx + 1); }
+  });
+  document.getElementById('search-prev').addEventListener('click', function () { gotoMatch(currentIdx - 1); });
+  document.getElementById('search-next').addEventListener('click', function () { gotoMatch(currentIdx + 1); });
+  document.getElementById('search-close').addEventListener('click', hideSearch);
+
+  // ── Keyboard shortcuts ────────────────────────────────────────────────
+  document.addEventListener('keydown', function (e) {
+    var mod = e.metaKey || e.ctrlKey;
+    if (mod && e.key === 'f') { e.preventDefault(); showSearch(); }
+    if (mod && (e.key === '=' || e.key === '+')) {
+      e.preventDefault(); zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom();
+    }
+    if (mod && e.key === '-') {
+      e.preventDefault(); zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom();
+    }
+    if (mod && e.key === '0') { e.preventDefault(); zoom = 1; applyZoom(); }
+    if (e.key === 'Escape' && searchBar.style.display !== 'none') { e.preventDefault(); hideSearch(); }
+  });
+})();
+"""
+
+
 def render(text):
     """Convert Markdown text to a full HTML document string."""
     text, mermaid_blocks = _extract_mermaid(text)
@@ -105,13 +237,14 @@ def render(text):
             "markdown.extensions.attr_list",
             "markdown.extensions.def_list",
             "markdown.extensions.admonition",
-            "markdown.extensions.toc",
+            TocExtension(toc_depth="2-4"),
             ArithmatexExtension(generic=True),
         ]
     )
     body = md.convert(text)
     body = _restore_mermaid(body, mermaid_blocks)
     body = _apply_syntax_highlighting(body)
+    toc_html = md.toc  # empty string when no headings
 
     css = _load_asset("style.css") or ""
     pygments_css = HtmlFormatter().get_style_defs(".highlight")
@@ -161,8 +294,22 @@ def render(text):
 {mermaid_block}
 </head>
 <body>
+<aside id="toc-sidebar">
+  <div class="toc-title">Contents</div>
+  {toc_html}
+</aside>
+<div id="main-content">
 <article>
 {body}
 </article>
+</div>
+<div id="search-bar">
+  <input type="text" id="search-input" placeholder="Search…" autocomplete="off" spellcheck="false">
+  <span id="search-info"></span>
+  <button id="search-prev" title="Previous (Shift+Enter)">↑</button>
+  <button id="search-next" title="Next (Enter)">↓</button>
+  <button id="search-close" title="Close (Esc)">✕</button>
+</div>
+<script>{_UI_JS}</script>
 </body>
 </html>"""

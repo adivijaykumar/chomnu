@@ -4,11 +4,27 @@ A lightweight Markdown reader for macOS, Linux, and Windows. Double-click any `.
 
 [![Tests](https://github.com/adivijaykumar/chomnu/actions/workflows/test.yml/badge.svg)](https://github.com/adivijaykumar/chomnu/actions/workflows/test.yml)
 
+## Download
+
+Pre-built binaries are attached to every [GitHub Release](https://github.com/adivijaykumar/chomnu/releases):
+
+| Platform | File |
+|---|---|
+| macOS | `Chomnu-macos.zip` — extract and drag `Chomnu.app` to `/Applications` |
+| Linux | `Chomnu-linux-x86_64` — single binary, `chmod +x` and run |
+| Windows | `Chomnu-windows-x86_64.exe` — double-click to run |
+
+> **macOS note:** the binary is unsigned. On first launch right-click → Open → Open to bypass Gatekeeper.
+
 ## Features
 
 - **Math** — inline (`$x^2$`) and display (`$$\int f\,dx$$`) via MathJax, fully offline
 - **Diagrams** — Mermaid flowcharts, sequence diagrams, pie charts
 - **Syntax highlighting** — fenced code blocks via Pygments (100+ languages)
+- **Table of contents** — fixed sidebar with active-section tracking; auto-hides when no headings
+- **Search** — Cmd+F / Ctrl+F opens a floating search bar with match count and navigation
+- **Zoom** — Cmd++/Cmd+- to scale text; Cmd+0 to reset; persisted across reloads
+- **Print / PDF** — Cmd+P prints cleanly (sidebar and search bar hidden)
 - **Dark mode** — follows your system appearance automatically
 - **Live reload** — updates the window when the file changes on disk
 - **CLI** — `chomnu file.md` opens from any terminal
