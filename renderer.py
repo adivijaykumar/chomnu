@@ -98,6 +98,27 @@ _UI_JS = """
   }
   applyZoom();
 
+  // ── Theme ─────────────────────────────────────────────────────────────
+  // Cycle: 0=auto (follows OS), 1=light, 2=dark
+  var _themes = ['auto', 'light', 'dark'];
+  var _themeIcons = ['◐', '☀', '☾'];
+  var _themeLabels = ['Theme: auto', 'Theme: light', 'Theme: dark'];
+  var _themeIdx = 0;
+  try { _themeIdx = Math.min(2, Math.max(0, parseInt(localStorage.getItem('chomnu-theme') || '0') || 0)); } catch (e) {}
+
+  function applyTheme() {
+    var t = _themes[_themeIdx];
+    if (t === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', t);
+    }
+    var btn = document.getElementById('ctrl-theme');
+    if (btn) { btn.textContent = _themeIcons[_themeIdx]; btn.title = _themeLabels[_themeIdx] + ' (click to cycle)'; }
+    try { localStorage.setItem('chomnu-theme', String(_themeIdx)); } catch (e) {}
+  }
+  applyTheme();
+
   // ── TOC: hide sidebar when empty, highlight active section ────────────
   var sidebar = document.getElementById('toc-sidebar');
   var mainContent = document.getElementById('main-content');
@@ -221,7 +242,11 @@ _UI_JS = """
     hideSearch: hideSearch,
     zoomIn:    function() { zoom = Math.min(2.5, parseFloat((zoom + 0.1).toFixed(1))); applyZoom(); },
     zoomOut:   function() { zoom = Math.max(0.5, parseFloat((zoom - 0.1).toFixed(1))); applyZoom(); },
-    resetZoom: function() { zoom = 1; applyZoom(); }
+    resetZoom: function() { zoom = 1; applyZoom(); },
+    setTheme:  function(name) {
+      var idx = _themes.indexOf(name);
+      if (idx >= 0) { _themeIdx = idx; applyTheme(); }
+    }
   };
 
   // ── Controls bar buttons ──────────────────────────────────────────────
@@ -236,6 +261,10 @@ _UI_JS = """
   });
   document.getElementById('ctrl-zoom-reset').addEventListener('click', function () {
     zoom = 1; applyZoom();
+  });
+  document.getElementById('ctrl-theme').addEventListener('click', function () {
+    _themeIdx = (_themeIdx + 1) % _themes.length;
+    applyTheme();
   });
 
   // ── Keyboard shortcuts (Ctrl, not Cmd — WKWebView intercepts Cmd+F/+/-) ──
@@ -316,6 +345,14 @@ def render(text):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+(function(){{
+  var i=0;
+  try{{i=parseInt(localStorage.getItem('chomnu-theme')||'0')||0;}}catch(e){{}}
+  if(i===1)document.documentElement.setAttribute('data-theme','light');
+  else if(i===2)document.documentElement.setAttribute('data-theme','dark');
+}})();
+</script>
 <style>
 {css}
 {pygments_css}
@@ -338,6 +375,7 @@ def render(text):
   <button id="ctrl-zoom-out" title="Zoom out (⌘- / Ctrl+-)">−</button>
   <button id="ctrl-zoom-reset" title="Reset zoom (⌘0 / Ctrl+0)">A</button>
   <button id="ctrl-zoom-in" title="Zoom in (⌘= / Ctrl+=)">+</button>
+  <button id="ctrl-theme" title="Theme: auto (click to cycle)">◐</button>
 </div>
 <div id="search-bar">
   <input type="text" id="search-input" placeholder="Search…" autocomplete="off" spellcheck="false">
