@@ -184,4 +184,4 @@ conda run -n chomnu python -m pytest tests/ -v
 
 ## License
 
-MIT
+GNU General Public License v3.0 — see [LICENSE](LICENSE).
