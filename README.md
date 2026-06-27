@@ -26,7 +26,7 @@ Pre-built binaries are attached to every [GitHub Release](https://github.com/adi
 - **Search** — Ctrl+F opens a floating search bar with match count and navigation
 - **Zoom** — Ctrl+= / Ctrl+- to scale text; Ctrl+0 to reset
 - **Theme toggle** — `◐` button cycles auto / light / dark; auto follows your OS appearance
-- **Print / PDF** — Ctrl+P prints cleanly (sidebar and controls hidden)
+- **Print / PDF** — ⌘P / Ctrl+P prints cleanly (sidebar and controls hidden)
 - **Live reload** — updates the window when the file changes on disk
 - **CLI** — `chomnu file.md` opens from any terminal
 

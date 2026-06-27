@@ -320,6 +320,43 @@ class TestSyntaxHighlighting:
 # Asset loading
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Theme init script
+# ---------------------------------------------------------------------------
+
+class TestThemeInit:
+    def test_theme_init_script_in_head(self):
+        html = render("hello")
+        head = html[:html.index("</head>")]
+        assert "chomnu-theme" in head
+
+    def test_theme_init_script_before_style(self):
+        # Must be in <head> before <style> to avoid flash of wrong theme
+        html = render("hello")
+        assert html.index("chomnu-theme") < html.index("<style>")
+
+    def test_theme_init_sets_light_for_index_1(self):
+        assert "setAttribute('data-theme', 'light')" in renderer._THEME_INIT_JS
+
+    def test_theme_init_sets_dark_for_index_2(self):
+        assert "setAttribute('data-theme', 'dark')" in renderer._THEME_INIT_JS
+
+
+# ---------------------------------------------------------------------------
+# Mermaid dark-theme detection
+# ---------------------------------------------------------------------------
+
+class TestMermaidDarkDetection:
+    def test_mermaid_uses_dynamic_theme_detection(self):
+        html = render("```mermaid\ngraph TD\n  A-->B\n```")
+        assert "matchMedia" in html
+        assert "isDark" in html
+
+    def test_mermaid_dark_detection_absent_without_diagram(self):
+        html = render("plain prose, no diagrams")
+        assert "isDark" not in html
+
+
 class TestAssetLoading:
     def test_style_css_loads(self):
         css = renderer._load_asset("style.css")

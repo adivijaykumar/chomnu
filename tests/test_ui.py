@@ -216,3 +216,48 @@ class TestZoom:
         for _ in range(20):  # 20 × -0.1 → well past 0.5 floor
             page.click("#ctrl-zoom-out")
         assert self._font_size(page) >= 16 * 0.5 - 0.5  # min zoom = 0.5×
+
+
+# ---------------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------------
+
+class TestTheme:
+    def _data_theme(self, page):
+        return page.evaluate("document.documentElement.getAttribute('data-theme')")
+
+    def test_initial_state_is_auto(self, page):
+        # No data-theme attribute and button shows the auto icon
+        assert self._data_theme(page) is None
+        assert page.inner_text("#ctrl-theme") == "◐"
+
+    def test_click_cycles_to_light(self, page):
+        page.click("#ctrl-theme")
+        assert self._data_theme(page) == "light"
+        assert page.inner_text("#ctrl-theme") == "☀"
+
+    def test_click_cycles_to_dark(self, page):
+        page.click("#ctrl-theme")  # → light
+        page.click("#ctrl-theme")  # → dark
+        assert self._data_theme(page) == "dark"
+        assert page.inner_text("#ctrl-theme") == "☾"
+
+    def test_click_cycles_back_to_auto(self, page):
+        page.click("#ctrl-theme")  # → light
+        page.click("#ctrl-theme")  # → dark
+        page.click("#ctrl-theme")  # → auto
+        assert self._data_theme(page) is None
+        assert page.inner_text("#ctrl-theme") == "◐"
+
+    def test_set_theme_via_api(self, page):
+        page.evaluate("window.chomnu.setTheme('dark')")
+        assert self._data_theme(page) == "dark"
+
+    def test_set_theme_auto_removes_attribute(self, page):
+        page.evaluate("window.chomnu.setTheme('dark')")
+        page.evaluate("window.chomnu.setTheme('auto')")
+        assert self._data_theme(page) is None
+
+    def test_invalid_theme_name_is_ignored(self, page):
+        page.evaluate("window.chomnu.setTheme('invalid')")
+        assert self._data_theme(page) is None  # stays auto
